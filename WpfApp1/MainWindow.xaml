@@ -1,0 +1,57 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        
+        <!--<Canvas x:Name="Canvas1">
+            <Path Stroke="gray" x:Name="path1" StrokeThickness="1" Fill="red">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="200,200" IsClosed="true">
+                            <LineSegment Point="50,200"/>
+                            <ArcSegment x:Name="arc" 
+                                        RotationAngle="0" 
+                                        SweepDirection="clockwise" 
+                                        IsLargeArc="false"
+                                        Size="150,150"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+
+                --><!--<Path.Triggers>
+                    <EventTrigger RoutedEvent="MouseMove">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <SizeAnimation To="350,350" Duration="0:0:1" AutoReverse="True" Storyboard.TargetName="arc"  Storyboard.TargetProperty="Size" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Path.Triggers>--><!--
+            </Path>
+
+            --><!--<path stroke="gray" strokethickness="1" fill="blue">
+                <path.data>
+                    <pathgeometry>
+                            <pathfigure x:name="bluepathfigure" startpoint="200,200" isclosed="false"/>
+                    </pathgeometry>
+                </path.data>
+            </path>--><!--
+
+        </Canvas>-->
+
+
+        <local:PieSeriseControl  x:Name="pieSerise" Source="{Binding PieSerise}" Width="400" Height="{Binding RelativeSource={RelativeSource Mode=Self},Path=ActualWidth}" Background="Red"/>
+
+        <!--<Button Content="Add" HorizontalAlignment="Left" Width="100" Height="30" Click="Button_Click"/>
+        <Button Content="Delete" Margin="0 70 0 0" HorizontalAlignment="Left" Width="100" Height="30" Click="Button_Click_1"/>-->
+
+
+
+
+    </Grid>
+</Window>
