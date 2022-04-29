@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Background=" #535353">
     <Grid>
         
         <!--<Canvas x:Name="Canvas1">
@@ -45,10 +45,10 @@
         </Canvas>-->
 
 
-        <local:PieSeriseControl  x:Name="pieSerise" Source="{Binding PieSerise}" Width="400" Height="{Binding RelativeSource={RelativeSource Mode=Self},Path=ActualWidth}" Background="Red"/>
+        <local:PieSeriseControl Background="#535353" x:Name="pieSerise" Source="{Binding PieSerise, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="30 30 30 30" />
 
-        <!--<Button Content="Add" HorizontalAlignment="Left" Width="100" Height="30" Click="Button_Click"/>
-        <Button Content="Delete" Margin="0 70 0 0" HorizontalAlignment="Left" Width="100" Height="30" Click="Button_Click_1"/>-->
+        <Button Content="Add" HorizontalAlignment="Left" Width="100" Height="30" Command="{Binding AddCommand}"/>
+        <Button Content="Delete" Margin="0 70 0 0" HorizontalAlignment="Left" Width="100" Height="30" Command="{Binding DeleteCommand}"/>
 
 
 

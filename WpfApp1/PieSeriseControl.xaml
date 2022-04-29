@@ -5,10 +5,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfApp1"
              mc:Ignorable="d" 
+             d:Width="300" Height="300" x:Name="pieUC"
              >
-        <Canvas x:Name="mainCanvas"  Background="Green" >
+
+
+    <Grid>
+        <Popup Name="pop1" IsOpen="False" Placement="Relative" AllowsTransparency="True">
+            <Border   Background="White" CornerRadius="5" Padding="14" BorderThickness="0" BorderBrush="Transparent">
+                <StackPanel >
+                    <Ellipse Name="ract" Width="20" Height="20" />
+                    <TextBlock Background="White" Padding="9,4,9,4" TextWrapping="Wrap" Name="txt" />
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Canvas x:Name="mainCanvas" 
+                Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type local:PieSeriseControl}},Path=Width}"
+                Height="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type local:PieSeriseControl}},Path=Height}">
 
 
         </Canvas>
+    </Grid>
+    
+       
 
 </UserControl>

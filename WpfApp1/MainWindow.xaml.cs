@@ -36,7 +36,7 @@ namespace WpfApp1
         double centenrX = 0;
         double centenrY = 0;
 
-        SeriseList<PieSerise> pieSerises = new SeriseList<PieSerise>();
+       // SeriseList<PieSerise> pieSerises = new SeriseList<PieSerise>();
 
         public MainWindow()
         {
@@ -67,21 +67,21 @@ namespace WpfApp1
 
        
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            pieSerises.Add(new PieBase
-            {
-                Title = "Category#03",
-                Percentage = 30,
-                PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC000")),
-            });
-        }
+        //private void Button_Click(object sender, RoutedEventArgs e)
+        //{
+        //    pieSerises.Add(new PieBase
+        //    {
+        //        Title = "Category#03",
+        //        Percentage = 30,
+        //        PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC000")),
+        //    });
+        //}
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            pieSerises.RemoveRange(new Random().Next(0,pieSerises.MCount-1),1);
+        //private void Button_Click_1(object sender, RoutedEventArgs e)
+        //{
+        //    pieSerises.RemoveRange(new Random().Next(0,pieSerises.MCount-1),1);
            
-        }
+        //}
     }
 
     //public class MyList<T> : List<T>

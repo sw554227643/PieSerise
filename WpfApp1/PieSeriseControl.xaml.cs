@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -30,7 +34,6 @@ namespace WpfApp1
 
         double centenrX = 0;
         double centenrY = 0;
-        private static List<PieSerise> pies;
         private static List<PieBase> serieList = new List<PieBase>();
 
         public PieSeriseControl()
@@ -38,28 +41,39 @@ namespace WpfApp1
             InitializeComponent();
             this.Loaded += PieSeriseControl_Loaded;
             this.SizeChanged += PieSeriseControl_SizeChanged;
+            action = DrawPath;
+
         }
+
+        private void Source_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            DrawPath(Source);
+        }
+
 
         private void PieSeriseControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            DrawPath(pies);
+            DrawPath(Source);
         }
 
         private void PieSeriseControl_Loaded(object sender, RoutedEventArgs e)
         {
-            DrawPath(pies);
+
+            Source.CollectionChanged += Source_CollectionChanged;
+            DrawPath(Source);
+
         }
 
-        private   void DrawPath(IEnumerable<PieSerise> pieSerises)
+        private void DrawPath(IEnumerable<PieSerise> pieSerises)
         {
-            if(pies is null || !pies.Any())
+            if (Source is null || !Source.Any())
             {
                 return;
             }
             mainCanvas.Children.Clear();
             //draw pie 
-            var canvasWidth = mainCanvas.ActualWidth;
-            var canvasHeight = mainCanvas.ActualHeight;
+            var canvasWidth = this.ActualWidth;
+            var canvasHeight = this.ActualHeight;
 
             var pieWidth = canvasWidth > canvasHeight ? canvasHeight : canvasWidth;
             var pieHeight = canvasWidth > canvasHeight ? canvasHeight : canvasWidth;
@@ -85,8 +99,21 @@ namespace WpfApp1
                 angle = pieSerise.Percentage / sum * 360 + prevAngle;
 
                 //3 根据偏转角计算旋转后新点 的位置
-                double arcX = centenrX + Math.Cos(angle * Math.PI / 180) * radius;
-                double arcY = (radius * Math.Sin(angle * Math.PI / 180)) + centenrY;
+                //注意 当只有一个的时候 那么画出来的就是一个圆，但是arcSegment 无法画重合的圆，所以最大角度弄成359度
+                double arcX = 0;
+                double arcY = 0;
+
+                if (pieSerises.Count() == 1 && angle == 360)
+                {
+                    arcX = centenrX + Math.Cos(359.99999 * Math.PI / 180) * radius;
+                    arcY = (radius * Math.Sin(359.99999 * Math.PI / 180)) + centenrY;
+                }
+                else
+                {
+                    arcX = centenrX + Math.Cos(angle * Math.PI / 180) * radius;
+                    arcY = (radius * Math.Sin(angle * Math.PI / 180)) + centenrY;
+                }
+
 
                 //4.1 画直线从圆心到第一个点A1 的直线
                 var line1Segment = new LineSegment(new Point(line1X, line1Y), false);
@@ -99,13 +126,13 @@ namespace WpfApp1
                 var arcWidth = radius;
                 var arcHeight = radius;
                 //4.2.1 弧线
-                var arcSegment = new ArcSegment()
-                {
-                    Size = new Size(arcWidth, arcHeight),
-                    Point = new Point(arcX, arcY),
-                    SweepDirection = SweepDirection.Clockwise,
-                    IsLargeArc = isLargeArc
-                };
+                var arcSegment = new ArcSegment();
+
+
+                arcSegment.Size = new Size(arcWidth, arcHeight);
+                arcSegment.Point = new Point(arcX, arcY);
+                arcSegment.SweepDirection = SweepDirection.Clockwise;
+                arcSegment.IsLargeArc = isLargeArc;
 
 
 
@@ -150,29 +177,37 @@ namespace WpfApp1
                 path.MouseMove += Path_MouseMove1;
                 path.MouseLeave += Path_MouseLeave;
 
-
                 //4.7 画扇形之间的白线
-                var outline1 = new Line()
+                if (pieSerises.Count() == 1 && angle == 360)
                 {
-                    X1 = centenrX,
-                    Y1 = centenrY,
-                    X2 = line1Segment.Point.X,
-                    Y2 = line1Segment.Point.Y,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 0.8,
-                };
-                var outline2 = new Line()
-                {
-                    X1 = centenrX,
-                    Y1 = centenrY,
-                    X2 = arcSegment.Point.X,
-                    Y2 = arcSegment.Point.Y,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 0.8,
-                };
 
-                mainCanvas.Children.Add(outline1);
-                mainCanvas.Children.Add(outline2);
+                }
+                else
+                {
+                    var outline1 = new Line()
+                    {
+                        X1 = centenrX,
+                        Y1 = centenrY,
+                        X2 = line1Segment.Point.X,
+                        Y2 = line1Segment.Point.Y,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 0.8,
+                    };
+                    var outline2 = new Line()
+                    {
+                        X1 = centenrX,
+                        Y1 = centenrY,
+                        X2 = arcSegment.Point.X,
+                        Y2 = arcSegment.Point.Y,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 0.8,
+                    };
+
+                    mainCanvas.Children.Add(outline1);
+                    mainCanvas.Children.Add(outline2);
+
+                }
+
 
             }
         }
@@ -180,6 +215,7 @@ namespace WpfApp1
 
         private void Path_MouseLeave(object sender, MouseEventArgs e)
         {
+            pop1.IsOpen = false;
             var path = sender as Path;
             TranslateTransform ttf = new TranslateTransform();
             ttf.X = 0;
@@ -204,12 +240,16 @@ namespace WpfApp1
         /// <param name="e"></param>
         private void Path_MouseMove1(object sender, MouseEventArgs e)
         {
-
+            Path path = sender as Path;
+            //动画
             if (!flg)
             {
-                var path = sender as Path;
+
                 BegionOffsetAnimation(path);
             }
+            ShowMousePopup(path,e);
+
+
         }
 
         private void BegionOffsetAnimation(Path path)
@@ -306,25 +346,45 @@ namespace WpfApp1
 
         }
 
-
-
-        public  IEnumerable<PieSerise> Source
+        /// <summary>
+        /// 显示详情窗口
+        /// </summary>
+        /// <param name="path"></param>
+        private void ShowMousePopup(Path path, MouseEventArgs e)
         {
-            get { return (SeriseList<PieSerise>)GetValue(SourceProperty); }
+            var data = path.DataContext as PieBase;
+            if (!this.pop1.IsOpen)
+                this.pop1.IsOpen = true;
+
+            var mousePosition = e.GetPosition((UIElement)mainCanvas.Parent);
+
+            this.pop1.HorizontalOffset = mousePosition.X + 20;
+            this.pop1.VerticalOffset = mousePosition.Y + 20;
+
+            txt.Text = (data.Title + " : " + data.Percentage);//显示鼠标当前坐标点
+            ract.Fill = data.PieColor;
+        }
+
+
+
+        public ObservableCollection<PieSerise> Source
+        {
+            get { return (ObservableCollection<PieSerise>)GetValue(SourceProperty); }
             set { SetValue(SourceProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for Source.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SourceProperty =
-            DependencyProperty.Register("Source", typeof(SeriseList<PieSerise>), typeof(PieSeriseControl), new PropertyMetadata(null,new PropertyChangedCallback(SourceChanged)));
+            DependencyProperty.Register("Source", typeof(ObservableCollection<PieSerise>), typeof(PieSeriseControl), new PropertyMetadata(null, new PropertyChangedCallback(SourceChanged)));
 
         private static void SourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            pies = new List<PieSerise>();
-            pies = (List<PieSerise>)e.NewValue;
+            var list = e.NewValue;
+            action((ObservableCollection<PieSerise>)e.NewValue);
+
         }
 
-        private EventRoute SourceChangedEventRoute { get; set; }
+        private static Action<IEnumerable<PieSerise>> action;
 
     }
 }

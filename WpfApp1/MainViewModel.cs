@@ -1,41 +1,40 @@
-﻿using System;
+﻿using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 using System.Windows.Media;
 
 namespace WpfApp1
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyRaised(string propertyname)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyname));
-            }
-        }
+        
 
-        private SeriseList<PieSerise> pieSerises;
+        private ObservableCollection<PieSerise> pieSerises;
 
-        public SeriseList<PieSerise> PieSerise
+        public ObservableCollection<PieSerise> PieSerise
         {
             get { return pieSerises; }
-            set { pieSerises = value; OnPropertyRaised(nameof(PieSerise)); }
+            set { pieSerises = value;  }
         }
 
 
         public MainViewModel()
         {
-            PieSerise = new SeriseList<PieSerise>();
-            pieSerises.Add(new PieSerise
+            AddCommand = new RelayCommand(Add);
+            DeleteCommand = new RelayCommand(Delete);
+
+            PieSerise = new ObservableCollection<PieSerise>();
+            PieSerise.Add(new PieSerise
             {
                 Title = "Category#04",
                 Percentage = 30,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B9BD5")),
             });
-            pieSerises.Add(
+            PieSerise.Add(
                 new PieSerise
                 {
                     Title = "Category#01",
@@ -43,27 +42,27 @@ namespace WpfApp1
                     PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4472C4")),
                 });
 
-            pieSerises.Add(new PieSerise
+            PieSerise.Add(new PieSerise
             {
                 Title = "Category#04",
-                Percentage = 3,
+                Percentage = 49,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B9BD5")),
             });
 
-            pieSerises.Add(new PieSerise
+            PieSerise.Add(new PieSerise
             {
                 Title = "Category#02",
                 Percentage = 50,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ED7D31")),
             });
-            pieSerises.Add(new PieSerise
+            PieSerise.Add(new PieSerise
             {
                 Title = "Category#03",
                 Percentage = 30,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC000")),
             });
 
-            pieSerises.Add(new PieSerise
+            PieSerise.Add(new PieSerise
             {
                 Title = "Category#04",
                 Percentage = 30,
@@ -72,7 +71,24 @@ namespace WpfApp1
 
         }
 
+        private void Delete()
+        {
+            PieSerise.Remove(PieSerise[new Random().Next(0, pieSerises.Count - 1)]);
+
+        }
 
 
+        private void Add()
+        {
+            pieSerises.Add(new PieSerise
+            {
+                Title = "Category#02",
+                Percentage = 50,
+                PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ED7D31")),
+            });
+        }
+
+        public RelayCommand AddCommand { get; set; }
+        public RelayCommand DeleteCommand { get; set; }
     }
 }
