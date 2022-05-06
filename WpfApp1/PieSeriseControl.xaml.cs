@@ -17,6 +17,8 @@ using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Line = System.Windows.Shapes.Line;
+using Path = System.Windows.Shapes.Path;
 
 namespace WpfApp1
 {
@@ -29,6 +31,7 @@ namespace WpfApp1
         private double radius;
         Point minPoint;
 
+        double fontsize = 12;
         double offsetX = 0;
         double offsetY = 0;
 
@@ -64,6 +67,10 @@ namespace WpfApp1
 
         }
 
+        /// <summary>
+        /// 画扇形
+        /// </summary>
+        /// <param name="pieSerises"></param>
         private void DrawPath(IEnumerable<PieSerise> pieSerises)
         {
             if (Source is null || !Source.Any())
@@ -79,7 +86,7 @@ namespace WpfApp1
             var pieHeight = canvasWidth > canvasHeight ? canvasHeight : canvasWidth;
             centenrX = pieWidth / 2;
             centenrY = pieHeight / 2;
-            radius = pieWidth / 2;
+            radius = canvasWidth > canvasHeight ? canvasHeight/2 : canvasWidth/2;
             mainCanvas.Width = pieWidth;
             mainCanvas.Height = pieHeight;
 
@@ -139,13 +146,6 @@ namespace WpfApp1
                 //4.4 直线 用来封闭弧线
                 var line2Segment = new LineSegment(new Point(centenrX, centenrY), false);
 
-                //4.5 设置路径图 PathFigure
-                var pathFigure = new PathFigure(new Point(centenrX, centenrY), new List<PathSegment>()
-                {
-                    line1Segment,
-                    arcSegment,
-                    line2Segment
-                }, true);
 
                 PieBase piebase = new PieBase();
                 piebase.Title = pieSerise.Title;
@@ -154,17 +154,26 @@ namespace WpfApp1
                 piebase.LineSegmentStar = line1Segment;
                 piebase.ArcSegment = arcSegment;
                 piebase.LineSegmentEnd = line2Segment;
-                piebase.Angle = angle;
+                piebase.Angle = pieSerise.Percentage / sum * 360;
                 piebase.StarPoint = new Point(line1X, line1Y);
                 piebase.EndPoint = new Point(arcX, arcY);
-                serieList.Add(piebase);
+
+
+                //4.5 设置路径图 PathFigure
+                var pathFigure = new PathFigure(new Point(centenrX, centenrY), new List<PathSegment>()
+                {
+                    line1Segment,
+                    arcSegment,
+                   line2Segment,
+                }, true);
 
 
 
                 //4.6 添加到路径几何中
                 var pathFigures = new List<PathFigure>()
                 {
-                    pathFigure
+                    pathFigure,
+
                 };
                 var pathGeometry = new PathGeometry(pathFigures);
                 var path = new Path() { Fill = pieSerise.PieColor, Data = pathGeometry, DataContext = piebase };
@@ -172,15 +181,29 @@ namespace WpfApp1
 
                 prevAngle = angle;
 
+                var line3 = DrawLine(path);
+                if (line3 != null)
+                {
+                    piebase.Line = line3;
+
+                }
+
+                var textPathGeo = DrawText(path);
+                var textpath = new Path() {Fill= pieSerise.PieColor, Data = textPathGeo };
+                piebase.TextPath = textpath;
+
+                mainCanvas.Children.Add(textpath);
 
 
                 path.MouseMove += Path_MouseMove1;
                 path.MouseLeave += Path_MouseLeave;
 
+                serieList.Add(piebase);
+
                 //4.7 画扇形之间的白线
                 if (pieSerises.Count() == 1 && angle == 360)
                 {
-
+                    mainCanvas.Children.Add(line3);
                 }
                 else
                 {
@@ -205,22 +228,180 @@ namespace WpfApp1
 
                     mainCanvas.Children.Add(outline1);
                     mainCanvas.Children.Add(outline2);
-
+                    mainCanvas.Children.Add(line3);
                 }
 
 
             }
         }
 
+        /// <summary>
+        /// 画指示线
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private Polyline DrawLine(Path path)
+        {
+            NameScope.SetNameScope(this, new NameScope());
+            var pathDataContext = path.DataContext as PieBase;
+            var angle = pathDataContext.Angle;
+            pathDataContext.Line = null;
+            //计算圆弧的中点坐标
+            minPoint = new Point(Math.Round(pathDataContext.StarPoint.X + pathDataContext.EndPoint.X) / 2, Math.Round(pathDataContext.StarPoint.Y + pathDataContext.EndPoint.Y) / 2);
+
+            Vector v1;
+            //计算圆心到圆弧中点的向量
+            if (angle > 180 && angle < 360)
+            {
+                v1 = new Point(centenrX, centenrY) - minPoint;
+            }
+            else if (angle == 180 || angle == 360) //当圆被两等分或者参数只有一个的时候 圆心到中点的向量为空的 
+            {
+                //可以通过 圆弧起始点的X坐标和终点的X坐标 判断是被横轴等分还是数轴等分
+                //X的坐标不同 那么就是被横轴等分
+                //X的坐标相同 那么就是被竖轴等分
+                if (Math.Round(pathDataContext.StarPoint.X) == Math.Round(pathDataContext.EndPoint.X)) //被竖轴等分
+                {
+                    v1 = new Point(radius * 2, radius) - new Point(centenrX, centenrY); //取圆最右边的点为中点 求圆心到中点的向量
+
+                }
+                else                                                           //被横轴等分
+                {
+                    //判断圆弧的顺序 以此来判断被横轴等分的 两个半圆是朝上还是朝下的 这里是通过起始点的坐标来判断的 
+                    //因为是顺时针画的 所以 起始点X坐标比终点X坐标大的 朝下，反之
+                    if (Math.Round(pathDataContext.StarPoint.X) - Math.Round(pathDataContext.EndPoint.X) == 2 * radius)
+                    {
+                        v1 = new Point(radius, 2 * radius) - new Point(centenrX, centenrY);
+                    }
+                    else
+                    {
+                        v1 = new Point(radius, 0) - new Point(centenrX, centenrY);
+                    }
+                }
+            }
+            else
+            {
+                v1 = minPoint - new Point(centenrX, centenrY);
+            }
+
+
+            //向量取模
+            v1.Normalize();
+
+            //求圆心到圆心与中点向量在圆弧上的向量
+            var Vmin = v1 * radius;
+
+            //求圆上交点的坐标
+            var RadiusToNodal = Vmin + new Point(centenrX, centenrY);
+
+
+
+            //X轴方向 的向量
+            var v2 = new Point(2000, 0) - new Point(0, 0);
+            double vAngle = 0;
+            //计算两个向量的夹角 角度在180°<β<360° 并且 占比大于等于50%
+
+            vAngle = Math.Round(Vector.AngleBetween(v2, v1));
+
+
+            //计算X Y 方向的偏移
+            offsetX = 10 * Math.Cos(vAngle * Math.PI / 180);
+            offsetY = 10 * Math.Sin(vAngle * Math.PI / 180);
+
+            //求延长线上一点的坐标
+            var prolongPoint = new Point(RadiusToNodal.X + offsetX * 1, RadiusToNodal.Y + offsetY * 1);
+
+            if (RadiusToNodal.X == double.NaN || RadiusToNodal.Y == double.NaN || prolongPoint.X == double.NaN || prolongPoint.Y == double.NaN)
+                return null;
+
+
+            var point1 = RadiusToNodal;
+            var point2 = prolongPoint;
+            Point point3;
+            //判断中点是 X刻度  150（半径） 的位置
+            //在圆的右半部分 那么线需要向右边延伸 新点X需要增大
+            if (prolongPoint.X >= radius)
+            {
+                point3 = new Point(prolongPoint.X + 10, prolongPoint.Y);
+            }
+            else
+            {
+                point3 = new Point(prolongPoint.X - 10, prolongPoint.Y);
+            }
+            //画折线
+            PointCollection polygonPoints = new PointCollection();
+            polygonPoints.Add(point1);
+            polygonPoints.Add(point2);
+            polygonPoints.Add(point3);
+            var line3 = new Polyline();
+            line3.Points = polygonPoints;
+            line3.Stroke = pathDataContext.PieColor;
+            pathDataContext.PolylineEndPoint = point3;
+
+            return line3;
+        }
+
+
+        private PathGeometry DrawText(Path path)
+        {
+            NameScope.SetNameScope(this, new NameScope());
+            var pathDataContext = path.DataContext as PieBase;
+
+            Typeface typeface = new Typeface
+                (new FontFamily("Microsoft YaHei"),
+                FontStyles.Normal,
+                FontWeights.Normal, FontStretches.Normal);
+
+            FormattedText text = new FormattedText(
+                pathDataContext.Title,
+                new System.Globalization.CultureInfo("zh-cn"),
+                FlowDirection.LeftToRight, typeface, fontsize, Brushes.RosyBrown
+                );
+
+            var textWidth = text.Width;
+
+            Geometry geo = null;
+            //判断是圆形的左边还是右边
+            if (pathDataContext.PolylineEndPoint.X > radius)
+            {
+                geo = text.BuildGeometry(new Point(pathDataContext.PolylineEndPoint.X + 4, pathDataContext.PolylineEndPoint.Y - fontsize/1.8));
+
+            }
+            else
+            {
+                geo = text.BuildGeometry(new Point(pathDataContext.PolylineEndPoint.X - textWidth -4, pathDataContext.PolylineEndPoint.Y - fontsize / 1.8));
+            }
+
+            PathGeometry pathGeometry = geo.GetFlattenedPathGeometry();
+            return pathGeometry;
+
+        }
+
+
+
+
 
         private void Path_MouseLeave(object sender, MouseEventArgs e)
         {
             pop1.IsOpen = false;
             var path = sender as Path;
+            var dt = path.DataContext as PieBase;
+
             TranslateTransform ttf = new TranslateTransform();
             ttf.X = 0;
             ttf.Y = 0;
             path.RenderTransform = ttf;
+            dt.Line.RenderTransform = new TranslateTransform()
+            {
+                X = 0,
+                Y = 0,
+            };
+
+            dt.TextPath.RenderTransform = new TranslateTransform()
+            {
+                X = 0,
+                Y = 0,
+            };
 
             path.Effect = new DropShadowEffect()
             {
@@ -234,7 +415,7 @@ namespace WpfApp1
         }
 
         /// <summary>
-        /// 
+        /// 显示详细框
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -247,7 +428,7 @@ namespace WpfApp1
 
                 BegionOffsetAnimation(path);
             }
-            ShowMousePopup(path,e);
+            ShowMousePopup(path, e);
 
 
         }
@@ -264,28 +445,44 @@ namespace WpfApp1
 
             //计算圆心到圆弧中点的向量
             var v1 = minPoint - new Point(centenrX, centenrY);
+
             //X轴方向 的向量
             var v2 = new Point(2000, 0) - new Point(0, 0);
             double vAngle = 0;
-            //计算两个向量的夹角
-            if (180 < angle && angle < 360 && pathDataContext.Percentage / Source.Select(p => p.Percentage).Sum() >= 0.5)
+            //计算两个向量的夹角 角度在180°<β<360° 并且 占比大于等于50%
+            if (180 < angle && angle <= 360 && pathDataContext.Percentage / Source.Select(p => p.Percentage).Sum() >= 0.5)
             {
                 vAngle = Math.Round(Vector.AngleBetween(v2, -v1));
             }
             else
             {
                 vAngle = Math.Round(Vector.AngleBetween(v2, v1));
-
             }
+
 
             //计算X Y 方向的偏移
             offsetX = 10 * Math.Cos(vAngle * Math.PI / 180);
             offsetY = 10 * Math.Sin(vAngle * Math.PI / 180);
 
+            var line3 = pathDataContext.Line;
+            var textPath = pathDataContext.TextPath;
+
+            TranslateTransform LineAnimatedTranslateTransform =
+                new TranslateTransform();
+            this.RegisterName("LineAnimatedTranslateTransform", LineAnimatedTranslateTransform);
+            line3.RenderTransform = LineAnimatedTranslateTransform;
+
+
             TranslateTransform animatedTranslateTransform =
                 new TranslateTransform();
             this.RegisterName("AnimatedTranslateTransform", animatedTranslateTransform);
             path.RenderTransform = animatedTranslateTransform;
+
+            TranslateTransform TextAnimatedTranslateTransform =
+               new TranslateTransform();
+            this.RegisterName("TextAnimatedTranslateTransform", animatedTranslateTransform);
+            textPath.RenderTransform = animatedTranslateTransform;
+
 
             //X方向上的偏移
             DoubleAnimation daX = new DoubleAnimation();
@@ -298,6 +495,7 @@ namespace WpfApp1
 
             //Y方向上的偏移
             DoubleAnimation daY = new DoubleAnimation();
+
             Storyboard.SetTargetName(daY, nameof(animatedTranslateTransform));
             Storyboard.SetTargetProperty(daY, new PropertyPath(TranslateTransform.YProperty));
             daY.Duration = new Duration(TimeSpan.FromSeconds(0.2));
@@ -315,6 +513,13 @@ namespace WpfApp1
 
             animatedTranslateTransform.BeginAnimation(TranslateTransform.XProperty, daX);
             animatedTranslateTransform.BeginAnimation(TranslateTransform.YProperty, daY);
+            LineAnimatedTranslateTransform.BeginAnimation(TranslateTransform.XProperty, daX);
+            LineAnimatedTranslateTransform.BeginAnimation(TranslateTransform.YProperty, daY);
+            TextAnimatedTranslateTransform.BeginAnimation(TranslateTransform.XProperty, daX);
+            TextAnimatedTranslateTransform.BeginAnimation(TranslateTransform.YProperty, daY);
+
+
+
 
             flg = true;
         }

@@ -30,41 +30,41 @@ namespace WpfApp1
             PieSerise = new ObservableCollection<PieSerise>();
             PieSerise.Add(new PieSerise
             {
-                Title = "Category#04",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 30,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B9BD5")),
             });
             PieSerise.Add(
                 new PieSerise
                 {
-                    Title = "Category#01",
+                    Title = "哈哈哈哈哈啊哈哈",
                     Percentage = 250,
                     PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4472C4")),
                 });
 
             PieSerise.Add(new PieSerise
             {
-                Title = "Category#04",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 49,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B9BD5")),
             });
 
             PieSerise.Add(new PieSerise
             {
-                Title = "Category#02",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 50,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ED7D31")),
             });
             PieSerise.Add(new PieSerise
             {
-                Title = "Category#03",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 30,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC000")),
             });
 
             PieSerise.Add(new PieSerise
             {
-                Title = "Category#04",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 30,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B9BD5")),
             });
@@ -82,7 +82,7 @@ namespace WpfApp1
         {
             pieSerises.Add(new PieSerise
             {
-                Title = "Category#02",
+                Title = "哈哈哈哈哈啊哈哈",
                 Percentage = 50,
                 PieColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ED7D31")),
             });
