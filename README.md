@@ -1,8 +1,11 @@
 # PieSerise
 
 开发工具：VS2022
+
 开发环境：.net core 3.1
+
 可正常移植其他.net开发环境
+
 支持MVVM 
 
 效果如下图所示
